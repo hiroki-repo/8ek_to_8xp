@@ -1,0 +1,30 @@
+#module
+#defcfunc peek24 var prm_0,int prm_1
+return (lpeek(prm_0,prm_1)&0xFFFFFF)
+#deffunc poke24 var prm_0,int prm_1,int prm_2
+poke prm_0,prm_1+0,(prm_2>>(8*0))&0xFF
+poke prm_0,prm_1+1,(prm_2>>(8*1))&0xFF
+poke prm_0,prm_1+2,(prm_2>>(8*2))&0xFF
+return
+#defcfunc relocatet84pceapp var prm_0,int prm_1,int prm_2
+relocsize=peek24(prm_0,prm_1+0x100+0x12)
+repeat (relocsize-0x12a)/6
+poke24 prm_0,(prm_1+peek24(prm_0,prm_1+0x100+0x2a+(6*cnt))+relocsize+0x100)&0xFFFFFF,(prm_2+peek24(prm_0,prm_1+0x100+0x2a+3+(6*cnt))+relocsize+0x100)&0xFFFFFF
+loop
+return (prm_2+relocsize+0x100)
+#global
+
+fname=""+dir_cmdline
+repeat:if strmid(fname,0,1)=" "{fname=strmid(fname,1,strlen(fname))}else{break}:loop
+
+exist fname:strsize2=strsize
+sdim data48xp,strsize2-0x50
+bload fname,data48xp,-1,0x4e
+//memcpy memory,img4exec,varsize(img4exec)-0x50,0x600000,0x4e
+prgbase=peek24(data48xp,0x100+0x12)+0x100
+ret=relocatet84pceapp(data48xp,0,0xd1a881-prgbase)
+sdim programtmp,(strsize2-0x50)-prgbase+2
+wpoke programtmp,0,0x7bef
+memcpy programtmp,data48xp,(strsize2-0x50)-prgbase,2,prgbase
+bsave "program.bin",programtmp
+end
